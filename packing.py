@@ -1,4 +1,4 @@
-# Defining the packer and unpacker for the attack line.
+# Defining the packer and unpacker for the attack line and defense points
 
 def pack_attack_line(x_origin: float, y_origin: float, x_end: float, y_end: float) -> str:
     """
@@ -40,3 +40,27 @@ def unpack_attack_line(data: str) -> tuple:
 
 
     return (x_origin, y_origin), (x_end, y_end)
+
+
+def pack_defense_point(x_coordinate: float, y_coordinate: float) -> str:
+    """
+    Packs a coordinate into a string
+
+    Parameters:
+    x_coordinate (float): The x Coordinate of the point to be packed
+    y_coordinate (float): The y Coordinate of the point to be packed
+
+    Returns:
+    str: A packed string in the format 'x_coordinate|y_coordinate'
+    """
+
+    return f'{x_coordinate}|{y_coordinate}'
+
+def unpack_defense_point(data: str) -> tuple:
+    split_data = data.split('|')
+
+    if len(split_data) != 2:
+        raise ValueError("Input data must contain exactly two points separated by '|'")
+
+    return float(split_data[0]), float(split_data[1])
+
