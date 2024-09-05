@@ -76,6 +76,39 @@ def add_team(conn: sqlite3.Connection, team_name: str):
     except sqlite3.Error as e:
         print(f"SQLite error: {e}")
 
+def add_player(conn: sqlite3.Connection, name: str, number: int, position: str, team_name: int):
+    """
+    Add a new player to the player table in the SQLite database.
+
+    Parameters:
+    conn (sqlite3.Connection): Connection object to the SQLite database.
+    name (str): The name of the player.
+    number (int): The jersey number of the player.
+    position (str): The position of the player.
+    team_id (int): The ID of the team to which the player belongs.
+
+    Returns:
+    None
+    """
+    try:
+        # Create a cursor object
+        cursor = conn.cursor()
+
+        # Define the SQL command
+        command = f'''
+        INSERT INTO player (name, number, position, team_name)
+        VALUES ('{name}', {number}, '{position}', '{team_name}');
+        '''
+
+        # Execute the SQL command with parameters
+        cursor.execute(command)
+
+        # Commit the transaction
+        conn.commit()
+
+    except sqlite3.Error as e:
+        print(f"SQLite error: {e}")
+
 
 team_table_string = '''
  CREATE TABLE IF NOT EXISTS team (
@@ -91,8 +124,8 @@ player_table_string = '''
     name TEXT NOT NULL,
     number INTEGER,
     position TEXT,
-    team_id INTEGER,
-    FOREIGN KEY (team_id) REFERENCES team(team_id)
+    team_name TEXT,
+    FOREIGN KEY (team_name) REFERENCES team(team_name)
 );
 '''
 
@@ -137,10 +170,10 @@ def main():
     for table in tables:
         create_table(conn, table)
 
-    add_team(conn, 'Test_Team')
+    add_team(conn, 'Clarkson')
     print(generic_select_query(conn, 'SELECT * FROM team;'))
-    add_team(conn, 'Test_Team')
-    print(generic_select_query(conn, 'SELECT * FROM team;'))
+    add_player(conn, 'Henry Rausch', 7, 'Outside', 'Clarkson')
+    print(generic_select_query(conn, 'SELECT * FROM player;'))
 
 
     conn.close()
