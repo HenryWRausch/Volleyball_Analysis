@@ -139,6 +139,8 @@ def main():
 
     add_team(conn, 'Test_Team')
     print(generic_select_query(conn, 'SELECT * FROM team;'))
+    add_team(conn, 'Test_Team')
+    print(generic_select_query(conn, 'SELECT * FROM team;'))
 
 
     conn.close()
