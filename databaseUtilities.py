@@ -148,6 +148,47 @@ def add_attack(conn: sqlite3.Connection, Line: tuple[tuple, tuple], attackType: 
     except sqlite3.Error as e:
         print(f"SQLite error: {e}")
 
+def add_defense(conn: sqlite3.Connection, defense_point: tuple[float, float], quality: int, defenseType: str, player_name: str):
+    """
+    Add a defense record to the SQLite database.
+
+    Parameters:
+    conn (sqlite3.Connection): Connection object to the SQLite database.
+    defense_point (tuple[tuple, tuple]): A tuple of two tuples representing the start and end coordinates of the defense.
+    quality (int): The quality of the defense (e.g., 1 to 10).
+    defenseType (str): The type of defense (e.g., block, dig).
+    location (str): The location on the court where the defense occurred.
+    player_name (str): The name of the player who made the defense.
+
+    Returns:
+    None: This function does not return a value but commits the transaction to the database.
+
+    Raises:
+    sqlite3.Error: If an SQLite error occurs during the database operation.
+    """
+    # Convert the defense_point tuple to a string using the pack_defense_point function
+    packed_defense_point = packing.pack_defense_point(defense_point[0], defense_point[1])
+
+    try:
+        # Create a cursor object
+        cursor = conn.cursor()
+        
+        # Define the SQL command with placeholders
+        command = '''
+        INSERT INTO Defense (Defense_ID, Quality, Type, Location, player_name)
+        VALUES (NULL, ?, ?, ?, ?);
+        '''
+
+        # Execute the SQL command with parameters
+        cursor.execute(command, (quality, defenseType, packed_defense_point, player_name))
+
+        # Commit the transaction
+        conn.commit()
+
+    except sqlite3.Error as e:
+        print(f"SQLite error: {e}")
+
+
 team_table_string = '''
  CREATE TABLE IF NOT EXISTS team (
         team_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -211,8 +252,8 @@ def main():
 
     print("Team data:", generic_select_query(conn, 'SELECT * FROM team;'))
     print("Player Data: ", generic_select_query(conn, 'SELECT * FROM player;'))
-    
-    print("Attack Data: ", generic_select_query(conn, 'SELECT * FROM attack WHERE player_name = "Henry Rausch"'))
+    print("Attack Data: ", generic_select_query(conn, 'SELECT * FROM attack'))
+    print("Defense Data: ", generic_select_query(conn, "SELECT * FROM defense"))
 
 
     conn.close()
