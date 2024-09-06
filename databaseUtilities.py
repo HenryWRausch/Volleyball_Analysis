@@ -1,4 +1,5 @@
 import sqlite3
+import packing
 
 def create_connection(db_file: str) -> sqlite3.Connection:
     """
@@ -109,6 +110,43 @@ def add_player(conn: sqlite3.Connection, name: str, number: int, position: str, 
     except sqlite3.Error as e:
         print(f"SQLite error: {e}")
 
+def add_attack(conn: sqlite3.Connection, Line: tuple[tuple, tuple], attackType: str, Result: str, player_name: str):
+    """
+    Add an attack record to the SQLite database.
+
+    Parameters:
+    conn (sqlite3.Connection): Connection object to the SQLite database.
+    Line (tuple[tuple, tuple]): A tuple of two tuples representing the start and end coordinates of the attack line.
+    attackType (str): The type of attack.
+    Result (str): The result of the attack.
+    player_name (str): The name of the player who made the attack.
+
+    Returns:
+    None: This function does not return a value but commits the transaction to the database.
+
+    Raises:
+    sqlite3.Error: If an SQLite error occurs during the database operation.
+    """
+
+    Line = packing.pack_attack_line(Line[0][0], Line[0][1], Line[1][0], Line[1][1]) # maybe need to rework pack attack line to take the tuple of tuples
+    try:
+        # Create a cursor object
+        cursor = conn.cursor()
+        
+        # Define the SQL command
+        command = '''
+        INSERT INTO attack (Line, Type, Result, player_name)
+        VALUES (?, ?, ?, ?);
+        '''
+
+        # Execute the SQL command with parameters
+        cursor.execute(command, (Line, attackType, Result, player_name))
+
+        # Commit the transaction
+        conn.commit()
+
+    except sqlite3.Error as e:
+        print(f"SQLite error: {e}")
 
 team_table_string = '''
  CREATE TABLE IF NOT EXISTS team (
@@ -137,8 +175,8 @@ CREATE TABLE IF NOT EXISTS Attack (
     Line TEXT NOT NULL,                     
     Type TEXT NOT NULL,                     
     Result TEXT NOT NULL,                  
-    player_id TEXT NOT NULL,              
-    FOREIGN KEY (player_id) REFERENCES player(player_id) 
+    player_name TEXT NOT NULL,              
+    FOREIGN KEY (player_name) REFERENCES player(player_name) 
 );
 '''
 
@@ -149,8 +187,8 @@ CREATE TABLE IF NOT EXISTS Defense (
     Quality INTEGER NOT NULL,
     Type TEXT NOT NULL,
     Location TEXT NOT NULL,
-    player_id TEXT NOT NULL,
-    FOREIGN KEY (player_id) REFERENCES player(player_id)
+    player_name TEXT NOT NULL,
+    FOREIGN KEY (player_name) REFERENCES player(player_name)
 );
 '''
 
@@ -170,10 +208,11 @@ def main():
     for table in tables:
         create_table(conn, table)
 
-    add_team(conn, 'Clarkson')
-    print(generic_select_query(conn, 'SELECT * FROM team;'))
-    add_player(conn, 'Henry Rausch', 7, 'Outside', 'Clarkson')
-    print(generic_select_query(conn, 'SELECT * FROM player;'))
+
+    print("Team data:", generic_select_query(conn, 'SELECT * FROM team;'))
+    print("Player Data: ", generic_select_query(conn, 'SELECT * FROM player;'))
+    
+    print("Attack Data: ", generic_select_query(conn, 'SELECT * FROM attack WHERE player_name = "Henry Rausch"'))
 
 
     conn.close()
